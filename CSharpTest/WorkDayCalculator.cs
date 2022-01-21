@@ -13,7 +13,7 @@ namespace CSharpTest
     {
         public DateTime Calculate(DateTime startDate, int dayCount, WeekEnd[] weekEnds)
         {
-            int workDays = dayCount;
+            double workDays = dayCount;
 
             try
             {
@@ -38,10 +38,21 @@ namespace CSharpTest
 
                 foreach (var weekEnd in weekEnds)
                 {
-                    if (weekEnd.StartDate == weekEnd.EndDate && (startDate.AddDays(workDays + 1) < weekEnd.StartDate || startDate > weekEnd.EndDate))
+                    if (weekEnd.StartDate == weekEnd.EndDate & (startDate.AddDays(workDays + 1) < weekEnd.StartDate || startDate > weekEnd.EndDate))
                         workDays++;
                     if (!(startDate.AddDays(workDays - 1) < weekEnd.StartDate || startDate > weekEnd.EndDate))
-                        workDays += weekEnd.EndDate.Day - weekEnd.StartDate.Day;
+                    {
+                        if (weekEnd.StartDate == weekEnd.EndDate && weekEnd.EndDate > startDate)
+                            workDays++;
+                        else if (startDate > weekEnd.StartDate & startDate <= weekEnd.EndDate)
+                            workDays = workDays + (weekEnd.EndDate - startDate).TotalDays;
+                        else 
+                        {
+                            if (weekEnd.StartDate == weekEnd.EndDate & (weekEnd.EndDate - startDate).TotalDays == 0 & weekEnd.StartDate != startDate) 
+                                workDays++;
+                            else workDays += (weekEnd.EndDate - weekEnd.StartDate).TotalDays;
+                        }
+                    }
                 }
             }
             catch (Exception e)
