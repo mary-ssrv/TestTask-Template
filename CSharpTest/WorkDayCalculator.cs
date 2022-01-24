@@ -11,9 +11,27 @@ namespace CSharpTest
     /// </summary>
     public class WorkDayCalculator : IWorkDayCalculator
     {
+        /// <summary>
+        /// is there a weekend before the start date
+        /// </summary>
+        /// <returns> start value for currentWeekEnd </returns>
+        private int getCurrentWeekIndex(DateTime startDate, WeekEnd[] weekEnds)
+        {
+            int currentWeekEndIndex = 0;
+            for (int i = 0; i < weekEnds.Length - 1; i++)
+            {
+                if (startDate >= weekEnds[i].StartDate & startDate <= weekEnds[i].EndDate)
+                {
+                    currentWeekEndIndex = i;
+                    break;
+                }
+            }
+            return currentWeekEndIndex;
+        }
         public DateTime Calculate(DateTime startDate, int dayCount, WeekEnd[] weekEnds)
         {
             double workDays = dayCount;
+            DateTime resultDate = startDate;
 
             try
             {
@@ -34,25 +52,40 @@ namespace CSharpTest
                 }
 
                 if (weekEnds == null)
-                    return startDate.AddDays(dayCount - 1);
+                    return resultDate.AddDays(dayCount - 1);
 
-                foreach (var weekEnd in weekEnds)
+                int currentWeekEnd = getCurrentWeekIndex(resultDate, weekEnds);
+
+                while (workDays >= 0)
                 {
-                    if (weekEnd.StartDate == weekEnd.EndDate & (startDate.AddDays(workDays + 1) < weekEnd.StartDate || startDate > weekEnd.EndDate))
-                        workDays++;
-                    if (!(startDate.AddDays(workDays - 1) < weekEnd.StartDate || startDate > weekEnd.EndDate))
+                    if (currentWeekEnd < weekEnds.Length)
                     {
-                        if (weekEnd.StartDate == weekEnd.EndDate && weekEnd.EndDate > startDate)
-                            workDays++;
-                        else if (startDate > weekEnd.StartDate & startDate <= weekEnd.EndDate)
-                            workDays = workDays + (weekEnd.EndDate - startDate).TotalDays;
-                        else 
+                        WeekEnd weekEnd = weekEnds[currentWeekEnd];
+
+                        if (resultDate >= weekEnd.StartDate & resultDate <= weekEnd.EndDate)
                         {
-                            if (weekEnd.StartDate == weekEnd.EndDate & (weekEnd.EndDate - startDate).TotalDays == 0 & weekEnd.StartDate != startDate) 
+                            if ((weekEnd.EndDate - resultDate).TotalDays == 0)
+                            {
                                 workDays++;
-                            else workDays += (weekEnd.EndDate - weekEnd.StartDate).TotalDays;
+                            }
+                            else
+                            {
+                                workDays += (weekEnd.EndDate - resultDate).TotalDays + 1;
+                            }
+
+                            currentWeekEnd++;
+                        }
+                        else if (resultDate > weekEnd.EndDate)
+                        {
+                            currentWeekEnd++;
                         }
                     }
+                    
+                    workDays--;
+                    if(workDays > 0)
+                    {
+                        resultDate = resultDate.AddDays(1);
+                    }      
                 }
             }
             catch (Exception e)
@@ -61,8 +94,7 @@ namespace CSharpTest
                 return DateTime.Now;
             }
 
-            return startDate.AddDays(workDays);
-
+            return resultDate;
         }
     }
 }

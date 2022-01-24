@@ -68,7 +68,7 @@ namespace CSharpTest
 
             DateTime result = new WorkDayCalculator().Calculate(startDate, count, weekends);
 
-            Assert.IsTrue(result.Equals(new DateTime(2021, 4, 26)));
+            Assert.IsTrue(result.Equals(new DateTime(2021, 4, 25)));
         }
 
         [TestMethod]
